@@ -116,7 +116,6 @@ int n;
 char buffer[TAM_MSG];
 bool termino = true;
 
-char id;
 
 void writing()
 {
@@ -255,7 +254,7 @@ int main()
 {
   //-----------------nickname ----------------------------------------------------//
   string nickname;
-  cout << "ingrese nickname: ";
+  cout << "Nickname: ";
   cin >> nickname;
 
   string final = "0";
@@ -317,9 +316,9 @@ int main()
           for(f=0;f<=24;f++){
              printf("%s\n",p[f]);
           }
-          //cout <<  posx << " " << posy << endl;
+          
           usleep(500000);
-        //getchar();
+        
         }while(1);
 
     hilo1.join();

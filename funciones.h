@@ -1,8 +1,11 @@
 #ifndef FUNCIONES_H
 #define FUNCIONES_H
+
 #include <string>
 #include <sstream>
+
 using namespace std;
+
 string int_to_char_spaces(int input_number, int cant_spaces)
   {
   string result_char;

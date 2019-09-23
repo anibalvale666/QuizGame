@@ -17,56 +17,62 @@
 using namespace std;
 string cierre = "adios";
 string userID;
-vector<int> active_users;
-vector<pair<int, int> > pos_users;
 
+vector<vector<int> > manage_users;
+vector<pair<int, string> > list_users;
+vector<pair<int, int> > initial_positions;
 
+void fill_initial_positions()
+{
+  initial_positions.push_back(make_pair(10,10));
+  initial_positions.push_back(make_pair(10,15));
+  initial_positions.push_back(make_pair(10,20));
+  initial_positions.push_back(make_pair(10,25));
+  initial_positions.push_back(make_pair(10,30));
+}
 
 int crearSocket(int &SocketFD1)
 {
-    SocketFD1 = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    int SocketFD2 = SocketFD1;
-   struct sockaddr_in stSockAddr;
-   if(-1 == SocketFD2)
-   {
-     perror("can not create socket");
-     exit(EXIT_FAILURE);
-   }
+  SocketFD1 = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  int SocketFD2 = SocketFD1;
+  struct sockaddr_in stSockAddr;
 
-   memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
+  if(-1 == SocketFD2)
+  {
+    perror("can not create socket");
+    exit(EXIT_FAILURE);
+  }
 
-   stSockAddr.sin_family = AF_INET;
-   stSockAddr.sin_port = htons(45550);
-   stSockAddr.sin_addr.s_addr = INADDR_ANY;
+  memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
 
-   if(bind(SocketFD1,(const struct sockaddr *)&stSockAddr, sizeof(struct sockaddr_in)))
-   {
-     perror("error bind failed");
-     close(SocketFD1);
-     exit(EXIT_FAILURE);
-   }
+  stSockAddr.sin_family = AF_INET;
+  stSockAddr.sin_port = htons(45550);
+  stSockAddr.sin_addr.s_addr = INADDR_ANY;
 
-   if(-1 == listen(SocketFD1, 10))
-   {
-     perror("error listen failed");
-     close(SocketFD1);
-     exit(EXIT_FAILURE);
-   }
-   return SocketFD2;
- }
+  if(::bind(SocketFD1,(const struct sockaddr *)&stSockAddr, sizeof(struct sockaddr_in)))
+  {
+    perror("error bind failed");
+    close(SocketFD1);
+    exit(EXIT_FAILURE);
+  }
 
+  if(-1 == listen(SocketFD1, 10))
+  {
+    perror("error listen failed");
+    close(SocketFD1);
+    exit(EXIT_FAILURE);
+  }
+  return SocketFD2;
+}
 
 void cli(int &ConnectFD,int &SocketFD1,int &_socket)
 {
-_socket = crearSocket(SocketFD1);
-
+  _socket = crearSocket(SocketFD1);
 }
-
 
 int n;
 void writing(int ConnectFD, char buffer[])
 {
-
   string mssg = "";
   do
   {
@@ -78,309 +84,123 @@ void writing(int ConnectFD, char buffer[])
     int aux = mssg.size();
     strcpy(buffer,mssg.c_str());
     n = write(ConnectFD,buffer,aux);
-
- }
- while(int(mssg.find(cierre)) < 0);
-   /* perform read write operations ... */
+  }
+  while(int(mssg.find(cierre)) < 0);
 }
-  vector<pair<string,int> > list_users;
-
-
+  
 void reading(int ConnectFD, char buffer[])
 {
-  cout<<"gg"<<endl;
-  string mssg;
+  string received_message;
   do
   {
     bzero(buffer,TAM_MSG);
-    n=read(ConnectFD, buffer, 3);
-    mssg = buffer;
+    n = read(ConnectFD, buffer, 3);
+    received_message = buffer;
 
-    cout<<"r "<<mssg<<endl;
+    cout<<"Received: "<<received_message<<endl;
 
-    if (mssg[0] == '1')
-    {
-      if (mssg[1] == '1')
-      {
-        if (mssg[2] == '1')
-        {
-          pos_users[0].second = pos_users[0].second - 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-          cout<<"e "<<enviar<<endl;
-          n=write(ConnectFD, enviar, 9);
-        }
-        else if (mssg[2] == '2')
-        {
-          pos_users[0].second = pos_users[0].second + 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-        else if (mssg[2] == '3')
-        {
-          pos_users[0].first = pos_users[0].first - 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-        else if (mssg[2] == '4')
-        {
-          pos_users[0].first = pos_users[0].first + 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-      }
-
-      if (mssg[1] == '2')
-      {
-        if (mssg[2] == '1')
-        {
-          pos_users[0].second = pos_users[0].second - 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          cout<<"gg "<<enviar<<endl;
-
-          n=write(ConnectFD, enviar, 9);
-        }
-        else if (mssg[2] == '2')
-        {
-          pos_users[0].second = pos_users[0].second + 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-        else if (mssg[2] == '3')
-        {
-          pos_users[0].first = pos_users[0].first - 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-        else if (mssg[2] == '4')
-        {
-          pos_users[0].first = pos_users[0].first + 1;
-          char enviar[9];
-          enviar[0] = '2';
-
-          string t = to_string(pos_users[0].first);
-
-          enviar[1] = t[0];
-          enviar[2] = t[1];
-
-          t = to_string(pos_users[0].second);
-          enviar[3] = t[0];
-          enviar[4] = t[1];
-
-          t = to_string(pos_users[1].first);
-          enviar[5] = t[0];
-          enviar[6] = t[1];
-
-          t = to_string(pos_users[1].second);
-          enviar[7] = t[0];
-          enviar[8] = t[1];
-
-          n=write(ConnectFD, enviar, 9);
-        }
-
-      }
-
-    }
-  }
-  while(int(mssg.find(cierre)) < 0);
+  } while(int(received_message.find(cierre)) < 0);
 
 }
 
+void print_manage_users()
+{
+  cout<<"Manage Users"<<endl;
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    for (int j=0; j<manage_users[i].size(); j++)
+    {
+      cout<<manage_users[i][j]<<"\t";
+    }
+    cout<<endl;
+  }
+}
 
 int main()
 {
-  userID = "server";
-
   int socketFD1;
   int ConnectFD;
   int _socket;
 
-
   cli(ConnectFD,socketFD1,_socket);
-
 
   char buffer[TAM_MSG];
 
+  int id=1;
 
-  int i=1;
+  int count = 0;
 
+  fill_initial_positions();
 
-  for(;;){
+  for(;;)
+  {
     int ConnectClient = accept(socketFD1, NULL, NULL);
     bzero(buffer,TAM_MSG);
-    //inicializando comando NICK
-    read(ConnectClient,buffer,1); // read command
+    
+    //Adding new player in server.
+    n = read(ConnectClient,buffer,1); 
 
-
-    if ( buffer[0] == '1' )
+    if ( buffer[0] == '0' )
     {
-      active_users.push_back(i);
-      i+=1;
+      n = read(ConnectClient,buffer,2);
+      buffer[n] = '\0';
 
-      pos_users.push_back(make_pair(10, 10));
-      pos_users.push_back(make_pair(10, 20));
+      int size_nickname = atoi(buffer);
 
-      char pos[9];
-      pos[0] = '2';
-      pos[1] = '1';
-      pos[2] = '0';
-      pos[3] = '1';
-      pos[4] = '0';
-      pos[5] = '1';
-      pos[6] = '0';
-      pos[7] = '2';
-      pos[8] = '0';
-      cout<<"anadido"<<endl;
-      n = write(ConnectClient,buffer, 9);
-      std::thread (reading,ConnectClient,buffer).detach();
+      n = read(ConnectClient, buffer, size_nickname);
+      buffer[n] = '\0';
+
+      string nickname_rcv(buffer);
+
+      cout<<"Nickname: "<<nickname_rcv<<endl;
+
+      list_users.push_back(make_pair(id, nickname_rcv));
+
+      vector<int> new_user;
+      new_user.push_back(id);                           //ID
+      new_user.push_back(ConnectClient);                //SocketID
+      new_user.push_back(initial_positions[count % initial_positions.size()].first);             //Start position X
+      new_user.push_back(initial_positions[count % initial_positions.size()].second);            //Start position Y
+      new_user.push_back(0);                            //Initial Score
+      new_user.push_back(1);                            //Bool: 1 (Alive) 0 (Dead)
+
+      manage_users.push_back(new_user);
+
+      print_manage_users();
+
+      //Answer from server to new player added.
+      string answer = "";
+
+      answer += "0";
+      answer += to_string(id);
+      answer += int_to_char_spaces(manage_users[count][2], 2);
+      answer += int_to_char_spaces(manage_users[count][3], 2);
+      answer += to_string(count);
+
+      for (int i=0; i<count; i++)
+      {
+        answer += int_to_char_spaces(manage_users[i][2], 2);
+        answer += int_to_char_spaces(manage_users[i][3], 2);
+      }
+
+      id += 1;
+      count += 1;
+
+      cout<<"Answer: "<<answer<<endl;
+
+      n = write(ConnectClient, answer.c_str(), answer.size());
+
+      thread(reading, ConnectClient, buffer).detach();
     }
-    //  ------------------------------------------------------
-    // comando list-------------------------------------------
-    else {
-      string error = "ingrese primero comando: 'nickname'";
+    
+    else 
+    {
+      string error = "Escriba su nickname para entrar en el juego.";
       string final = "4035" + error;
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
       n = write(ConnectClient,buffer,final.size());
     }
-
-
   }
   shutdown(ConnectFD, SHUT_RDWR);
 
