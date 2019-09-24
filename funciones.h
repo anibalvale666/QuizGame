@@ -6,6 +6,24 @@
 
 using namespace std;
 
+
+class Point
+{
+public:
+  int x,y;
+  Point(int _x, int _y)
+  {
+    x = _x;
+    y = _y;
+  }
+  Point()
+  {
+    x = 0;
+    y = 0;
+  }
+};
+
+
 string int_to_char_spaces(int input_number, int cant_spaces)
   {
   string result_char;

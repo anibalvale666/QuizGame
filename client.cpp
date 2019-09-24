@@ -1,15 +1,17 @@
- #include <sys/types.h>
-  #include <sys/socket.h>
-  #include <netinet/in.h>
-  #include <arpa/inet.h>
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <unistd.h>
-  #include <iostream>
-  #include <thread>
-  #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <iostream>
+#include <thread>
+#include <string.h>
 #include "funciones.h"
 #include <termios.h>
+#include <vector>
+#include <utility>
 
 #define TAM_MSG 1000
 
@@ -18,12 +20,13 @@ int SocketFD = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 int Res;
 string cierre = "adios";
 string userID;
-int id;
 char  p[100][100];
 int c,f,x=0;
-int posx=0,posy=0,posx2=0,posy2=0;
-int posx_p=0,posy_p=0;
-char pasado;
+
+
+int id;
+int posx=0,posy=0;
+vector<pair<int,Point>> pos_players;
 
 static struct termios old, current;
 
@@ -124,15 +127,11 @@ void writing()
   {
     bzero(buffer,TAM_MSG);
     mssg ="";
-    //getline(cin,mssg);
     char c;
-    //mssg = "[" + userID + "] " + mssg;
-    //int aux = mssg.size();
-    //strcpy(buffer,mssg.c_str());
-    //buffer[mssg.size()] = '\0';
-    //n = write(SocketFD,buffer,aux);
     c = getch();
 
+    //envio de camio de posicion
+    //formato: 1 + id + (1 up || 2 down || 3 left || 4 right) = 3 bites
     if(c == 'w')
     {
       string final = "1";
@@ -195,49 +194,87 @@ void reading()
     n = read(SocketFD,buffer,1);
     //cout << buffer << endl;
     mssg = buffer;
+    //inicializacion obtenemos id del server y la posicion inicial del jugador asi como la lista de jugadores existentes
+    //formato: 0 + id_asignado(1) + cantidad_players(1) + posxposy(4)*cantidad_players = 7+4*cantidad_players bites
     if(buffer[0] == '0')
     {
+      //leemos el id asigando por el server al jugador
       n = read(SocketFD,buffer,1);
       buffer[n] = '\0';
       id = atoi(buffer);
 
-      n = read(SocketFD,buffer,2);
-      buffer[n] = '\0';
-      posx = atoi(buffer);
-
-      n = read(SocketFD,buffer,2);
-      buffer[n] = '\0';
-      posy = atoi(buffer);
-
-      int cant;
+      //leemos la antidad de players actual
+      int cant_players;
       n = read(SocketFD,buffer,1);
       buffer[n] = '\0';
-      cant = atoi(buffer);
+      cant_players = atoi(buffer);
 
-      /*for(int i=0;i< cant;i++)
-      players*/
+      for(int i=0;i< cant_players;i++)
+      {
+        //leemos la posiciones x e y de los players existentes
+        n = read(SocketFD,buffer,2);
+        buffer[n] = '\0';
+        posx = atoi(buffer);
+
+        n = read(SocketFD,buffer,2);
+        buffer[n] = '\0';
+        posy = atoi(buffer);
+        pos_players.push_back(make_pair(i,Point(posx,posy)));
+      }
     }
-    if(buffer[0] == '2')
+    //actualiza las posiciones del propio jugador
+    //formato: 1 + pos(x) + pos(y) = 5 bites
+    if(buffer[0] == '1')
     {
 
-      n= read(SocketFD,buffer,8); // read size
-      //cout<<"r "<<buffer<<endl;
-      char ja[2];
+      n= read(SocketFD,buffer,4); // read size
 
-      ja[0] = buffer[0];
-      ja[1] = buffer[1];
-      posx = atoi(ja);
-      ja[0] = buffer[2];
-      ja[1] = buffer[3];
-      posy = atoi(ja);
-      ja[0] = buffer[4];
-      ja[1] = buffer[5];
-      posx2 = atoi(ja);
-      ja[0] = buffer[6];
-      ja[1] = buffer[7];
-      posy2 = atoi(ja);
+      char num[2];
+
+      num[0] = buffer[0];
+      num[1] = buffer[1];
+      posx = atoi(num);
+      pos_players[id].second.x = posx;
+      num[0] = buffer[2];
+      num[1] = buffer[3];
+      posy = atoi(num);
+      pos_players[id].second.y = posy;
+
     }
-    else if(buffer[0] == '5') //el server envia OK
+    //actualizacion de las posiciones de los demas jugadores
+    //formato: 3 + id_player(1) + pos_p(2) + pos_p(2) = 6 bites
+    if(buffer[0] == '3')
+    {
+      n= read(SocketFD,buffer,5);
+      int id_aux = atoi(buffer);
+      bool existe = false;
+
+      char num[2];
+      num[0] = buffer[1];
+      num[1] = buffer[2];
+      pos_players[id_aux].second.x = atoi(num);
+      num[0] = buffer[3];
+      num[1] = buffer[4];
+      pos_players[id_aux].second.y = atoi(num);
+    }
+    //se agrega un nuevo jugador
+    //4 + id(1) + posx_p(2) + posy_p(2) = 5 bites
+    if(buffer[0] == '4')
+    {
+      n= read(SocketFD,buffer,4);
+      bool existe = false;
+      int id_aux = buffer[0];
+      char num[2];
+      num[0] = buffer[1];
+      num[1] = buffer[2];
+      pos_players.push_back(make_pair(id_aux,Point()));
+      pos_players[id_aux].second.x = atoi(num);
+      num[0] = buffer[3];
+      num[1] = buffer[4];
+      pos_players[id_aux].second.y = atoi(num);
+    }
+    //el server envia OK
+    else if(buffer[0] == '5')
     {
       cout << "OK" << endl;
     }
@@ -316,9 +353,9 @@ int main()
           for(f=0;f<=24;f++){
              printf("%s\n",p[f]);
           }
-          
+
           usleep(500000);
-        
+
         }while(1);
 
     hilo1.join();
@@ -332,5 +369,5 @@ int main()
 
     close(_socket);
 
-	return 0;
+  return 0;
 }
