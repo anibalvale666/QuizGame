@@ -261,16 +261,19 @@ void reading()
     //4 + id(1) + posx_p(2) + posy_p(2) = 5 bites
     if(buffer[0] == '4')
     {
-      n= read(SocketFD,buffer,5);
+      n= read(SocketFD,buffer,1);
+      buffer[n] = '\0';
       bool existe = false;
-      int id_aux = buffer[0];
+      int id_aux = atoi(buffer);
       char num[2];
-      num[0] = buffer[1];
-      num[1] = buffer[2];
+
+      n= read(SocketFD,buffer,4);
+      num[0] = buffer[0];
+      num[1] = buffer[1];
       pos_players.push_back(make_pair(id_aux,Point()));
       pos_players[id_aux].second.x = atoi(num);
-      num[0] = buffer[3];
-      num[1] = buffer[4];
+      num[0] = buffer[2];
+      num[1] = buffer[3];
       pos_players[id_aux].second.y = atoi(num);
     }
     //el server envia OK
@@ -349,7 +352,7 @@ int main()
 
               }
           }
-          p[posy][posx] = 'O';
+          p[pos_players[id].second.y][pos_players[id].second.x] = 'O';
           for(f=0;f<=24;f++){
              printf("%s\n",p[f]);
           }
