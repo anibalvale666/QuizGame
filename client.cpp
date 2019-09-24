@@ -377,7 +377,7 @@ int main()
           //dibujar cosas en el mapa
           for(int i=0;i<pos_players.size();i++)
           {
-            cout<< "pos: " << pos_players[i].second.y << " " <<pos_players[i].second.x << endl;
+            //cout<< "pos: " << pos_players[i].second.y << " " <<pos_players[i].second.x << endl;
               p[pos_players[i].second.y][pos_players[i].second.x] = 'O';
               if(pos_players[i].second.y == fruna.second.y and pos_players[i].second.x == fruna.second.x)
                 {
