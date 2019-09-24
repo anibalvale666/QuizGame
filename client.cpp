@@ -24,7 +24,7 @@ char  p[100][100];
 int c,f,x=0;
 
 
-int id;
+int id=0;
 int posx=0,posy=0;
 vector<pair<int,Point>> pos_players;
 pair<bool,Point> fruna(false,Point());
@@ -152,6 +152,7 @@ void writing()
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
       n = write(SocketFD,buffer,final.size());
+      cout<<"ggg "<<final<<endl;
     }
     if(c == 'a')
     {
@@ -161,6 +162,7 @@ void writing()
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
       n = write(SocketFD,buffer,final.size());
+      cout<<"ggg "<<final<<endl;
     }
     if(c == 'd')
     {
@@ -170,6 +172,7 @@ void writing()
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
       n = write(SocketFD,buffer,final.size());
+      cout<<"ggg "<<final<<endl;
     }
 
     else if(mssg == "exit")
@@ -237,11 +240,11 @@ void reading()
       num[0] = buffer[0];
       num[1] = buffer[1];
       posx = atoi(num);
-      pos_players[id].second.x = posx;
+      pos_players[id].second.x = atoi(num);
       num[0] = buffer[2];
       num[1] = buffer[3];
       posy = atoi(num);
-      pos_players[id].second.y = posy;
+      pos_players[id].second.y = atoi(num);
 
     }
     //actualizacion de las posiciones de los demas jugadores
@@ -366,7 +369,7 @@ int main()
               for(c=0;c<=60;c++)
               {
 
-                if(p[f][c+1] != 'O' and 'F')
+                if(p[f][c+1] != 'O' and p[f][c+1] !='F')
                  p[f][c]=p[f][c+1];
 
               }
@@ -374,6 +377,7 @@ int main()
           //dibujar cosas en el mapa
           for(int i=0;i<pos_players.size();i++)
           {
+            cout<< "pos: " << pos_players[i].second.y << " " <<pos_players[i].second.x << endl;
               p[pos_players[i].second.y][pos_players[i].second.x] = 'O';
               if(pos_players[i].second.y == fruna.second.y and pos_players[i].second.x == fruna.second.x)
                 {
