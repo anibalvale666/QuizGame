@@ -261,7 +261,7 @@ void reading()
     //4 + id(1) + posx_p(2) + posy_p(2) = 5 bites
     if(buffer[0] == '4')
     {
-      n= read(SocketFD,buffer,4);
+      n= read(SocketFD,buffer,5);
       bool existe = false;
       int id_aux = buffer[0];
       char num[2];
