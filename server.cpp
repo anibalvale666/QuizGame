@@ -14,13 +14,49 @@
 #include "funciones.h"
 
 #define TAM_MSG 1000
+#define SCORE_WIN 100
+
 using namespace std;
+
 string cierre = "adios";
-string userID;
 
 vector<vector<int> > manage_users;
 vector<pair<int, string> > list_users;
 vector<pair<int, int> > initial_positions;
+
+int generated_gifts = 0;
+
+void generate_gift()
+{
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    string broadcast_msg = "";
+    broadcast_msg += "6";
+    broadcast_msg += int_to_char_spaces(rand() % 50 + 1, 2);
+    broadcast_msg += int_to_char_spaces(rand() % 5 + 10, 2);
+
+    cout<<"Gift Broadcast: "<<broadcast_msg<<endl;
+
+    write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+  }
+
+  generated_gifts += 1;
+}
+
+int verify_winner()
+{
+  int index_winner = -1;
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    if (manage_users[i][4] == SCORE_WIN)
+    {
+      index_winner = i;
+      return index_winner;
+    }
+  }
+
+  return index_winner;
+}
 
 void fill_initial_positions()
 {
@@ -71,22 +107,6 @@ void cli(int &ConnectFD,int &SocketFD1,int &_socket)
 }
 
 int n;
-void writing(int ConnectFD, char buffer[])
-{
-  string mssg = "";
-  do
-  {
-    bzero(buffer,TAM_MSG);
-    getline(cin,mssg);
-    if(mssg =="exit")
-      break;
-    mssg = "[" + userID + "] " + mssg;
-    int aux = mssg.size();
-    strcpy(buffer,mssg.c_str());
-    n = write(ConnectFD,buffer,aux);
-  }
-  while(int(mssg.find(cierre)) < 0);
-}
 
 void broadcast_position(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
 {
@@ -130,6 +150,7 @@ void broadcast_new_player(int actual_id, int actual_socket_id, int actual_pos_x,
 void reading(int ConnectFD, char buffer[])
 {
   string received_message;
+  int count_received_messages = 0;
   do
   {
     n = read(ConnectFD, buffer, 1);
@@ -216,6 +237,12 @@ void reading(int ConnectFD, char buffer[])
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
+      count_received_messages += 1;
+    }
+
+    if (((count_received_messages % 5) == 0) and (count_received_messages != 0))
+    {
+      generate_gift();
     }
 
     //received_message = buffer;
