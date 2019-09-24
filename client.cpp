@@ -251,10 +251,12 @@ void reading()
     //formato: 3 + id_player(1) + pos_p(2) + pos_p(2) = 6 bites
     if(buffer[0] == '3')
     {
-      n= read(SocketFD,buffer,5);
-      int id_aux = atoi(buffer);
-      bool existe = false;
+      n= read(SocketFD,buffer,1);
+      buffer[n] = '\0';
 
+      int id_aux = atoi(buffer);
+
+      n= read(SocketFD,buffer,4);
       char num[2];
       num[0] = buffer[1];
       num[1] = buffer[2];
