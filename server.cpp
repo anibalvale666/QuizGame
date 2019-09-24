@@ -107,6 +107,25 @@ void broadcast_position(int actual_id, int actual_socket_id, int actual_pos_x, i
   }
 
 }
+
+void broadcast_new_player(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
+{
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    if (manage_users[i][1] != actual_socket_id)
+    {
+      string broadcast_msg = "";
+      broadcast_msg += "4";
+      broadcast_msg += to_string(actual_id);
+      broadcast_msg += int_to_char_spaces(actual_pos_x, 2);
+      broadcast_msg += int_to_char_spaces(actual_pos_y, 2);
+
+      cout<<"Notify New Player: "<<broadcast_msg<<endl;
+
+      write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+    }
+  }
+}
   
 void reading(int ConnectFD, char buffer[])
 {
@@ -272,13 +291,13 @@ int main()
 
       print_manage_users();
 
+      count += 1;
+
       //Answer from server to new player added.
       string answer = "";
 
       answer += "0";
       answer += to_string(id);
-      answer += int_to_char_spaces(manage_users[count][2], 2);
-      answer += int_to_char_spaces(manage_users[count][3], 2);
       answer += to_string(count);
 
       for (int i=0; i<count; i++)
@@ -288,11 +307,13 @@ int main()
       }
 
       id += 1;
-      count += 1;
-
+      
       cout<<"Answer: "<<answer<<endl;
 
       n = write(ConnectClient, answer.c_str(), answer.size());
+
+      if (count > 1)
+        broadcast_new_player(id-1, ConnectClient, manage_users[id-2][2], manage_users[id-2][3]);
 
       thread(reading, ConnectClient, buffer).detach();
     }
