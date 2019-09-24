@@ -27,6 +27,7 @@ int c,f,x=0;
 int id;
 int posx=0,posy=0;
 vector<pair<int,Point>> pos_players;
+pair<bool,Point> fruna(false,Point());
 
 static struct termios old, current;
 
@@ -135,17 +136,18 @@ void writing()
     if(c == 'w')
     {
       string final = "1";
-      final += id;
+      final += to_string(id);
       final += "1";
+
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
       n = write(SocketFD,buffer,final.size());
-      //cout<<"ggg "<<final<<endl;
+      cout<<"ggg "<<final<<endl;
     }
     if(c == 's')
     {
       string final = "1";
-      final += id;
+      final += to_string(id);
       final += "2";
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
@@ -154,7 +156,7 @@ void writing()
     if(c == 'a')
     {
       string final = "1";
-      final += id;
+      final += to_string(id);
       final += "3";
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
@@ -163,7 +165,7 @@ void writing()
     if(c == 'd')
     {
       string final = "1";
-      final += id;
+      final += to_string(id);
       final += "4";
       strcpy(buffer,final.c_str());
       buffer[final.size()] = '\0';
@@ -221,6 +223,7 @@ void reading()
         posy = atoi(buffer);
         pos_players.push_back(make_pair(i,Point(posx,posy)));
       }
+      cout << "jaja " <<endl;
     }
     //actualiza las posiciones del propio jugador
     //formato: 1 + pos(x) + pos(y) = 5 bites
@@ -276,6 +279,22 @@ void reading()
       num[1] = buffer[3];
       pos_players[id_aux].second.y = atoi(num);
     }
+    //el jugador lee la fruta enviada por el server
+    // 6(1) + posx_fresa(2) + posy fresa(2) = 5
+    if(buffer[0] == '6')
+    {
+
+      char num[2];
+
+      n= read(SocketFD,buffer,4);
+      num[0] = buffer[0];
+      num[1] = buffer[1];
+      fruna.second.x = atoi(num);
+      num[0] = buffer[2];
+      num[1] = buffer[3];
+      fruna.second.y = atoi(num);
+      fruna.first = true;
+    }
     //el server envia OK
     else if(buffer[0] == '5')
     {
@@ -305,7 +324,7 @@ int main()
   n = write(SocketFD,buffer,final.size());
   //-----------------nickname ----------------------------------------------------//
 
-  write(SocketFD,"1",1);
+  //write(SocketFD,"1",1);
   strcpy(p[x++],"||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
   strcpy(p[x++],"||||||||||||||||||||||||||||||||  |||||||||        |||||||||");
   strcpy(p[x++],"|||||| ||||||||||||||||||||||||    ||||||||        |||||||||");
@@ -347,15 +366,27 @@ int main()
               for(c=0;c<=60;c++)
               {
 
-                if(p[f][c+1] != 'O')
+                if(p[f][c+1] != 'O' and 'F')
                  p[f][c]=p[f][c+1];
 
               }
           }
-          p[pos_players[id].second.y][pos_players[id].second.x] = 'O';
+          //dibujar cosas en el mapa
+          for(int i=0;i<pos_players.size();i++)
+          {
+              p[pos_players[i].second.y][pos_players[i].second.x] = 'O';
+              if(pos_players[i].second.y == fruna.second.y and pos_players[i].second.x == fruna.second.x)
+                {
+                  fruna.first = false;
+                }
+          }
+          //fruta
+          if(fruna.first)
+            p[fruna.second.y][fruna.second.x] = 'F';
           for(f=0;f<=24;f++){
              printf("%s\n",p[f]);
           }
+
 
           usleep(500000);
 

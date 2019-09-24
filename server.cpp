@@ -14,13 +14,62 @@
 #include "funciones.h"
 
 #define TAM_MSG 1000
+#define SCORE_WIN 100
+
 using namespace std;
+
 string cierre = "adios";
-string userID;
 
 vector<vector<int> > manage_users;
 vector<pair<int, string> > list_users;
 vector<pair<int, int> > initial_positions;
+
+int generated_gifts = 0;
+
+void print_manage_users()
+{
+  cout<<"Manage Users"<<endl;
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    for (int j=0; j<manage_users[i].size(); j++)
+    {
+      cout<<manage_users[i][j]<<"\t";
+    }
+    cout<<endl;
+  }
+}
+
+void generate_gift()
+{
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    string broadcast_msg = "";
+    broadcast_msg += "6";
+    broadcast_msg += int_to_char_spaces(rand() % 50 + 1, 2);
+    broadcast_msg += int_to_char_spaces(rand() % 5 + 10, 2);
+
+    cout<<"Gift Broadcast: "<<broadcast_msg<<endl;
+
+    write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+  }
+
+  generated_gifts += 1;
+}
+
+int verify_winner()
+{
+  int index_winner = -1;
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    if (manage_users[i][4] == SCORE_WIN)
+    {
+      index_winner = i;
+      return index_winner;
+    }
+  }
+
+  return index_winner;
+}
 
 void fill_initial_positions()
 {
@@ -71,49 +120,151 @@ void cli(int &ConnectFD,int &SocketFD1,int &_socket)
 }
 
 int n;
-void writing(int ConnectFD, char buffer[])
+
+void broadcast_position(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
 {
-  string mssg = "";
-  do
+  for (int i=0; i<manage_users.size(); i++)
   {
-    bzero(buffer,TAM_MSG);
-    getline(cin,mssg);
-    if(mssg =="exit")
-      break;
-    mssg = "[" + userID + "] " + mssg;
-    int aux = mssg.size();
-    strcpy(buffer,mssg.c_str());
-    n = write(ConnectFD,buffer,aux);
+    if (manage_users[i][1] != actual_socket_id)
+    {
+      string broadcast_msg = "";
+      broadcast_msg += "3";
+      broadcast_msg += to_string(actual_id);
+      broadcast_msg += int_to_char_spaces(actual_pos_x, 2);
+      broadcast_msg += int_to_char_spaces(actual_pos_y, 2);
+
+      cout<<"Broadcast: "<<broadcast_msg<<endl;
+
+      write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+    }
   }
-  while(int(mssg.find(cierre)) < 0);
+
 }
-  
+
+void broadcast_new_player(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
+{
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    if (manage_users[i][1] != actual_socket_id)
+    {
+      string broadcast_msg = "";
+      broadcast_msg += "4";
+      broadcast_msg += to_string(actual_id);
+      broadcast_msg += int_to_char_spaces(actual_pos_x, 2);
+      broadcast_msg += int_to_char_spaces(actual_pos_y, 2);
+
+      cout<<"Notify New Player: "<<broadcast_msg<<endl;
+
+      write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+    }
+  }
+}
+
 void reading(int ConnectFD, char buffer[])
 {
   string received_message;
+  int count_received_messages = 0;
   do
   {
-    bzero(buffer,TAM_MSG);
-    n = read(ConnectFD, buffer, 3);
-    received_message = buffer;
+    n = read(ConnectFD, buffer, 1);
+    buffer[n] = '\0';
 
-    cout<<"Received: "<<received_message<<endl;
+    //Received new position
+    if (buffer[0] == '1')
+    {
+      n = read(ConnectFD, buffer, 1);
+      buffer[n] = '\0';
+
+      int rcv_id = atoi(buffer);
+      cout<<"ID: "<<rcv_id<<endl;
+
+      n = read(ConnectFD, buffer, 1);
+      buffer[n] = '\0';
+
+      int rcv_key = atoi(buffer);
+
+      //Up
+      if (rcv_key == 1)
+      {
+        manage_users[rcv_id][3] -= 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Down
+      else if (rcv_key == 2)
+      {
+        manage_users[rcv_id][3] += 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Left
+      else if (rcv_key == 3)
+      {
+        manage_users[rcv_id][2] -= 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Right
+      else if (rcv_key == 4)
+      {
+        manage_users[rcv_id][2] += 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+      print_manage_users();
+      count_received_messages += 1;
+    }
+
+    if (((count_received_messages % 5) == 0) and (count_received_messages != 0))
+    {
+      generate_gift();
+    }
+
+    //received_message = buffer;
+
+    //cout<<"Received: "<<received_message<<endl;
 
   } while(int(received_message.find(cierre)) < 0);
 
-}
-
-void print_manage_users()
-{
-  cout<<"Manage Users"<<endl;
-  for (int i=0; i<manage_users.size(); i++)
-  {
-    for (int j=0; j<manage_users[i].size(); j++)
-    {
-      cout<<manage_users[i][j]<<"\t";
-    }
-    cout<<endl;
-  }
 }
 
 int main()
@@ -126,7 +277,7 @@ int main()
 
   char buffer[TAM_MSG];
 
-  int id=1;
+  int id=0;
 
   int count = 0;
 
@@ -136,9 +287,9 @@ int main()
   {
     int ConnectClient = accept(socketFD1, NULL, NULL);
     bzero(buffer,TAM_MSG);
-    
+
     //Adding new player in server.
-    n = read(ConnectClient,buffer,1); 
+    n = read(ConnectClient,buffer,1);
 
     if ( buffer[0] == '0' )
     {
@@ -168,13 +319,13 @@ int main()
 
       print_manage_users();
 
+      count += 1;
+
       //Answer from server to new player added.
       string answer = "";
 
       answer += "0";
       answer += to_string(id);
-      answer += int_to_char_spaces(manage_users[count][2], 2);
-      answer += int_to_char_spaces(manage_users[count][3], 2);
       answer += to_string(count);
 
       for (int i=0; i<count; i++)
@@ -184,16 +335,18 @@ int main()
       }
 
       id += 1;
-      count += 1;
 
       cout<<"Answer: "<<answer<<endl;
 
       n = write(ConnectClient, answer.c_str(), answer.size());
 
+      if (count > 1)
+        broadcast_new_player(id-1, ConnectClient, manage_users[id-2][2], manage_users[id-2][3]);
+
       thread(reading, ConnectClient, buffer).detach();
     }
-    
-    else 
+
+    else
     {
       string error = "Escriba su nickname para entrar en el juego.";
       string final = "4035" + error;
