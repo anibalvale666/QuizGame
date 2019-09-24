@@ -160,6 +160,29 @@ void broadcast_new_player(int actual_id, int actual_socket_id, int actual_pos_x,
   }
 }
 
+<<<<<<< HEAD
+=======
+void broadcast_position(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
+{
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    if (manage_users[i][1] != actual_socket_id)
+    {
+      string broadcast_msg = "";
+      broadcast_msg += "3";
+      broadcast_msg += to_string(actual_id);
+      broadcast_msg += int_to_char_spaces(actual_pos_x, 2);
+      broadcast_msg += int_to_char_spaces(actual_pos_y, 2);
+
+      cout<<"Broadcast: "<<broadcast_msg<<endl;
+
+      write(manage_users[i][1], broadcast_msg.c_str(), broadcast_msg.size());
+    }
+  }
+
+}
+  
+>>>>>>> 8884cfef3e804c0911cfc57d902365b6d8eaa32b
 void reading(int ConnectFD, char buffer[])
 {
   string received_message;
@@ -168,12 +191,102 @@ void reading(int ConnectFD, char buffer[])
   {
     n = read(ConnectFD, buffer, 1);
     buffer[n] = '\0';
+<<<<<<< HEAD
 
     //Received new position
     if (buffer[0] == '1')
     {
       n = read(ConnectFD, buffer, 1);
       buffer[n] = '\0';
+=======
+
+    //Received new position
+    if (buffer[0] == '1')
+    {
+      n = read(ConnectFD, buffer, 1);
+      buffer[n] = '\0';
+
+      int rcv_id = atoi(buffer);
+      cout<<"ID: "<<rcv_id<<endl;
+
+      n = read(ConnectFD, buffer, 1);
+      buffer[n] = '\0';
+
+      int rcv_key = atoi(buffer);
+
+      //Up
+      if (rcv_key == 1)
+      {
+        manage_users[rcv_id][3] -= 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Down
+      else if (rcv_key == 2)
+      {
+        manage_users[rcv_id][3] += 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Left
+      else if (rcv_key == 3)
+      {
+        manage_users[rcv_id][2] -= 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+
+      //Right
+      else if (rcv_key == 4)
+      {
+        manage_users[rcv_id][2] += 1;
+
+        string answer_movement = "";
+        answer_movement += "1";
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][2], 2);
+        answer_movement += int_to_char_spaces(manage_users[rcv_id][3], 2);
+
+        cout<<"Answer: "<<answer_movement<<endl;
+
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+
+        n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
+      }
+    }
+
+    //received_message = buffer;
+
+    //cout<<"Received: "<<received_message<<endl;
+>>>>>>> 8884cfef3e804c0911cfc57d902365b6d8eaa32b
 
       int rcv_id = atoi(buffer);
       cout<<"ID: "<<rcv_id<<endl;
