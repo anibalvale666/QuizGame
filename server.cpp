@@ -88,7 +88,7 @@ void writing(int ConnectFD, char buffer[])
   while(int(mssg.find(cierre)) < 0);
 }
 
-void broadcast_position(int actual_socket_id, int actual_pos_x, int actual_pos_y)
+void broadcast_position(int actual_id, int actual_socket_id, int actual_pos_x, int actual_pos_y)
 {
   for (int i=0; i<manage_users.size(); i++)
   {
@@ -96,7 +96,7 @@ void broadcast_position(int actual_socket_id, int actual_pos_x, int actual_pos_y
     {
       string broadcast_msg = "";
       broadcast_msg += "3";
-      broadcast_msg += to_string(manage_users[i][0]);
+      broadcast_msg += to_string(actual_id);
       broadcast_msg += int_to_char_spaces(actual_pos_x, 2);
       broadcast_msg += int_to_char_spaces(actual_pos_y, 2);
 
@@ -123,6 +123,7 @@ void reading(int ConnectFD, char buffer[])
       buffer[n] = '\0';
 
       int rcv_id = atoi(buffer);
+      cout<<"ID: "<<rcv_id<<endl;
 
       n = read(ConnectFD, buffer, 1);
       buffer[n] = '\0';
@@ -141,7 +142,7 @@ void reading(int ConnectFD, char buffer[])
 
         cout<<"Answer: "<<answer_movement<<endl;
 
-        broadcast_position(ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
@@ -158,7 +159,7 @@ void reading(int ConnectFD, char buffer[])
 
         cout<<"Answer: "<<answer_movement<<endl;
 
-        broadcast_position(ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
@@ -175,7 +176,7 @@ void reading(int ConnectFD, char buffer[])
 
         cout<<"Answer: "<<answer_movement<<endl;
 
-        broadcast_position(ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
@@ -192,7 +193,7 @@ void reading(int ConnectFD, char buffer[])
 
         cout<<"Answer: "<<answer_movement<<endl;
 
-        broadcast_position(ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
+        broadcast_position(rcv_id, ConnectFD, manage_users[rcv_id][2], manage_users[rcv_id][3]);
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
