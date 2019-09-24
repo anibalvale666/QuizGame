@@ -168,6 +168,8 @@ void reading(int ConnectFD, char buffer[])
   {
     n = read(ConnectFD, buffer, 1);
     buffer[n] = '\0';
+    cout<<"Reading"<<endl;
+    cout<<"First bit: "<<buffer<<endl;
 
     //Received new position
     if (buffer[0] == '1')
@@ -182,6 +184,7 @@ void reading(int ConnectFD, char buffer[])
       buffer[n] = '\0';
 
       int rcv_key = atoi(buffer);
+      cout<<"Key code: "<<rcv_key<<endl;
 
       //Up
       if (rcv_key == 1)
