@@ -26,6 +26,19 @@ vector<pair<int, int> > initial_positions;
 
 int generated_gifts = 0;
 
+void print_manage_users()
+{
+  cout<<"Manage Users"<<endl;
+  for (int i=0; i<manage_users.size(); i++)
+  {
+    for (int j=0; j<manage_users[i].size(); j++)
+    {
+      cout<<manage_users[i][j]<<"\t";
+    }
+    cout<<endl;
+  }
+}
+
 void generate_gift()
 {
   for (int i=0; i<manage_users.size(); i++)
@@ -237,6 +250,7 @@ void reading(int ConnectFD, char buffer[])
 
         n = write(ConnectFD, answer_movement.c_str(), answer_movement.size());
       }
+      print_manage_users();
       count_received_messages += 1;
     }
 
@@ -253,19 +267,6 @@ void reading(int ConnectFD, char buffer[])
 
 }
 
-void print_manage_users()
-{
-  cout<<"Manage Users"<<endl;
-  for (int i=0; i<manage_users.size(); i++)
-  {
-    for (int j=0; j<manage_users[i].size(); j++)
-    {
-      cout<<manage_users[i][j]<<"\t";
-    }
-    cout<<endl;
-  }
-}
-
 int main()
 {
   int socketFD1;
@@ -276,7 +277,7 @@ int main()
 
   char buffer[TAM_MSG];
 
-  int id=1;
+  int id=0;
 
   int count = 0;
 
